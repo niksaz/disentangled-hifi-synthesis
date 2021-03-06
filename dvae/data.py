@@ -20,6 +20,9 @@ def get_dataloader(config):
   elif name == 'chairs':
     data_path = os.path.join('data', 'Chairs_64')
     dataset = get_non_tupled_image_folder_dataset(data_path, image_size)
+  elif name == 'cars':
+    data_path = os.path.join('data', 'Cars_64')
+    dataset = get_non_tupled_image_folder_dataset(data_path, image_size)
   else:
     raise ValueError(f'Unknown dataset name: {name}.')
   dataloader = DataLoader(dataset, batch_size, shuffle=True, num_workers=2, pin_memory=True, drop_last=True)
