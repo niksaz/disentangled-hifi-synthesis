@@ -1,0 +1,9 @@
+config:
+  dataset: dsprites
+  batch_size: 64
+  image_size: 64
+  recon_loss: bce_loss
+  hidden_dim: 10
+  beta: 8
+  max_iter: 500000
+  lr: 1e-4
