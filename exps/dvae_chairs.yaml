@@ -1,0 +1,9 @@
+config:
+  dataset: chairs
+  batch_size: 64
+  image_size: 64
+  recon_loss: mse_loss
+  hidden_dim: 20
+  beta: 10
+  max_iter: 1000000
+  lr: 1e-4
