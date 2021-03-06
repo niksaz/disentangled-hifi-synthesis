@@ -73,3 +73,17 @@ class Trainer:
         imgs_recon_grid = tutils.make_grid(imgs_recon, nrow=nrow, padding=1, pad_value=1)
         imgs_both_grid = tutils.make_grid(torch.stack([imgs_grid, imgs_recon_grid]), nrow=2, padding=10, pad_value=0)
         tutils.save_image(imgs_both_grid, os.path.join(self.output_dir, 'samples', f'{global_iter}.png'))
+
+      if global_iter % 100000 == 0 or global_iter == self.max_iter:
+        checkpoint_path = os.path.join(self.output_dir, 'checkpoints', f'model_{global_iter}')
+        self.save_model_state(checkpoint_path)
+
+  def save_model_state(self, path):
+    checkpoint = {'model': self.model.state_dict()}
+    with open(path, 'wb') as fout:
+      torch.save(checkpoint, fout)
+
+  def load_model_state(self, path):
+    with open(path, 'rb') as fin:
+      checkpoint = torch.load(fin)
+      self.model.load_state_dict(checkpoint['model'])
