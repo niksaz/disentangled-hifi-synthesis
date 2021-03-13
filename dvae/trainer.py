@@ -11,7 +11,7 @@ from torchvision import utils as tutils
 from tqdm import tqdm
 
 from dvae import model
-from dvae.data import get_dataloader
+import dataset
 
 
 def compute_loss(x_recon, x, mu, logvar, recon_loss_name):
@@ -33,7 +33,7 @@ class Trainer:
     self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
     self.max_iter = config['max_iter']
 
-    self.dataloader = get_dataloader(config)
+    self.dataloader = dataset.get_dataloader(config, num_workers=12, preprocessing_type='dvae')
     self.hidden_dim = config['hidden_dim']
     self.beta = config['beta']
 
@@ -76,14 +76,4 @@ class Trainer:
 
       if global_iter % 100000 == 0 or global_iter == self.max_iter:
         checkpoint_path = os.path.join(self.output_dir, 'checkpoints', f'model_{global_iter}')
-        self.save_model_state(checkpoint_path)
-
-  def save_model_state(self, path):
-    checkpoint = {'model': self.model.state_dict()}
-    with open(path, 'wb') as fout:
-      torch.save(checkpoint, fout)
-
-  def load_model_state(self, path):
-    with open(path, 'rb') as fin:
-      checkpoint = torch.load(fin)
-      self.model.load_state_dict(checkpoint['model'])
+        self.model.save_state(checkpoint_path)
