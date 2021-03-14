@@ -35,8 +35,10 @@ def get_dataloader(config, num_workers, preprocessing_type):
     data_path = os.path.join('data', 'dsprites-dataset', 'dsprites_ndarray_co1sh3sc6or40x32y32_64x64.npz')
     if preprocessing_type == 'dvae':
       transform = None
-    else:
+    elif preprocessing_type == 'idgan':
       transform = lambda x: x * 2 - 1.0
+    else:
+      raise NotImplementedError
     dataset = get_non_tupled_tensor_dataset(data_path, transform)
   elif name == 'chairs':
     data_path = os.path.join('data', 'Chairs_64')
