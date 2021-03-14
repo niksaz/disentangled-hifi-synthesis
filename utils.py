@@ -6,6 +6,7 @@ import random
 
 import numpy as np
 import torch
+from torchvision import utils as tutils
 import yaml
 
 
@@ -49,3 +50,11 @@ def dump_config(path, config):
   doc = {'config': config}
   with open(path, 'w') as stream:
     yaml.dump(doc, stream)
+
+
+def compile_image_gallery(imgs1, imgs2):
+  nrow = int(np.ceil(np.sqrt(imgs1.size(0))))
+  imgs1_grid = tutils.make_grid(imgs1, nrow=nrow, padding=1, pad_value=1)
+  imgs2_grid = tutils.make_grid(imgs2, nrow=nrow, padding=1, pad_value=1)
+  imgs_grid = tutils.make_grid(torch.stack([imgs1_grid, imgs2_grid]), nrow=2, padding=10, pad_value=0)
+  return imgs_grid

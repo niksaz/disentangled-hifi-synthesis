@@ -2,7 +2,6 @@
 
 import os
 
-import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import optim
@@ -10,8 +9,9 @@ from torch.utils.tensorboard import SummaryWriter
 from torchvision import utils as tutils
 from tqdm import tqdm
 
-from dvae import model
 import dataset
+import utils
+from dvae import model
 
 
 def compute_loss(x_recon, x, mu, logvar, recon_loss_name):
@@ -68,11 +68,8 @@ class Trainer:
       if global_iter % 1000 == 0:
         self.writer.add_scalar('recon_loss', recon_loss, global_iter)
         self.writer.add_scalar('kl_loss', kl_loss, global_iter)
-        nrow = int(np.ceil(np.sqrt(imgs.size(0))))
-        imgs_grid = tutils.make_grid(imgs, nrow=nrow, padding=1, pad_value=1)
-        imgs_recon_grid = tutils.make_grid(imgs_recon, nrow=nrow, padding=1, pad_value=1)
-        imgs_both_grid = tutils.make_grid(torch.stack([imgs_grid, imgs_recon_grid]), nrow=2, padding=10, pad_value=0)
-        tutils.save_image(imgs_both_grid, os.path.join(self.output_dir, 'samples', f'{global_iter}.png'))
+        imgs_grid = utils.compile_image_gallery(imgs, imgs_recon)
+        tutils.save_image(imgs_grid, os.path.join(self.output_dir, 'samples', f'{global_iter}.png'))
 
       if global_iter % 100000 == 0 or global_iter == self.max_iter:
         checkpoint_path = os.path.join(self.output_dir, 'checkpoints', f'model_{global_iter}')
