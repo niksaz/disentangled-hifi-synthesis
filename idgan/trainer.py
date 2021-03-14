@@ -56,6 +56,12 @@ def compute_gradient_penalty(outputs, inputs):
   return grads_penalty
 
 
+def set_requires_grad_(parameters, requires_grad):
+  """Allows to disable gradient computation for some of parameters to speed up the training."""
+  for p in parameters:
+    p.requires_grad_(requires_grad)
+
+
 class Trainer:
   def __init__(self, config, output_dir):
     self.config = config
@@ -138,11 +144,12 @@ class Trainer:
         tutils.save_image(x_grid, os.path.join(self.output_dir, 'samples', f'{global_iter}.png'))
 
   def discriminator_step(self, x_real, z):
-    self.dvae.zero_grad()
+    set_requires_grad_(self.dvae.parameters(), False)
+    set_requires_grad_(self.generator.parameters(), False)
+    set_requires_grad_(self.discriminator.parameters(), True)
+    x_real.requires_grad_(True)
     self.discriminator.zero_grad()
-    self.generator.zero_grad()
 
-    x_real.requires_grad_()
     src_real = self.discriminator(x_real)
     loss_real = compute_cross_entropy_loss_against(src_real, 1.0)
     gp_loss = compute_gradient_penalty(src_real, x_real).mean()
@@ -158,8 +165,10 @@ class Trainer:
     return dis_loss.item(), dis_gan_loss.item(), gp_loss.item()
 
   def generator_step(self, z, real_c, real_c_mu, real_c_logvar):
+    set_requires_grad_(self.dvae.parameters(), True)
+    set_requires_grad_(self.generator.parameters(), True)
+    set_requires_grad_(self.discriminator.parameters(), False)
     self.dvae.zero_grad()
-    self.discriminator.zero_grad()
     self.generator.zero_grad()
 
     x_fake = self.generator(z)
