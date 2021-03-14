@@ -89,8 +89,8 @@ class Trainer:
     self.s_dist = distributions.Normal(torch.zeros(self.s_dim).to(self.device), torch.ones(self.s_dim).to(self.device))
 
     # Optimizers
-    self.g_optimizer = get_optimizer_for(self.generator.parameters(), config['optimizer'], config['lr_g'])
-    self.d_optimizer = get_optimizer_for(self.discriminator.parameters(), config['optimizer'], config['lr_d'])
+    self.g_optimizer = get_optimizer_for(self.generator.parameters(), config['optimizer'], float(config['lr_g']))
+    self.d_optimizer = get_optimizer_for(self.discriminator.parameters(), config['optimizer'], float(config['lr_d']))
 
   def train(self):
     self.dvae.train()
