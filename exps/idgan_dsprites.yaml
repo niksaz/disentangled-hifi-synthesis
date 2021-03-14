@@ -13,5 +13,5 @@ config:
   lr_d: 1e-4
   generator:
     name: DVAEGenerator
-  disriminator:
+  discriminator:
     name: DVAEDiscriminator

@@ -25,3 +25,11 @@ class DVAEDiscriminator(nn.Module):
   def forward(self, x):
     x = self.model(x)
     return x
+
+GENERATORS = {
+  'DVAEGenerator': DVAEGenerator,
+}
+
+DISCRIMINATORS = {
+  'DVAEDiscriminator': DVAEDiscriminator,
+}

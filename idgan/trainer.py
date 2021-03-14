@@ -76,9 +76,13 @@ class Trainer:
     channels = self.dataloader.dataset[0].size(0)
     self.dvae = dvae.model.BetaVAE_H(self.c_dim, channels)
     self.dvae.load_state(config['dvae_checkpoint'])
-    hidden_dim = self.c_dim + self.s_dim
-    self.generator = model.DVAEGenerator(hidden_dim, channels)
-    self.discriminator = model.DVAEDiscriminator(channels)
+    z_dim = self.c_dim + self.s_dim
+    generator_cls = model.GENERATORS[config['generator']['name']]
+    generator_kwargs = {'z_dim': z_dim, 'channels': channels}
+    self.generator = generator_cls(**generator_kwargs)
+    discriminator_cls = model.DISCRIMINATORS[config['discriminator']['name']]
+    discriminator_kwargs = {'channels': channels}
+    self.discriminator = discriminator_cls(**discriminator_kwargs)
 
     self.dvae.to(self.device)
     self.generator.to(self.device)
