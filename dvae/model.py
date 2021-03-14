@@ -21,9 +21,8 @@ class View(nn.Module):
 
 
 class Encoder(nn.Module):
-    def __init__(self, channels, z_dim, infodistil_mode=False):
+    def __init__(self, channels, z_dim):
         super().__init__()
-        self.infodistil_mode = infodistil_mode
         self.channels = channels
         self.model = nn.Sequential(
             nn.Conv2d(channels, 32, 4, 2, 1),    # B,  32, 32, 32
@@ -41,8 +40,6 @@ class Encoder(nn.Module):
         )
 
     def forward(self, x):
-        if self.infodistil_mode:
-            x = (x + 1.0) / 2.0
         x = self.model(x)
         return x
 
@@ -81,18 +78,19 @@ class BetaVAE_H(nn.Module):
         self.apply(lambda m: normal_init(m, mean=0.00, std=0.02))
 
     def forward(self, x):
-        distributions = self._encode(x)
+        z, mu, logvar = self.encode(x)
+        x_recon = self.decode(z)
+        return x_recon, z, mu, logvar
+
+    def encode(self, x):
+        distributions = self.encoder(x)
         mu = distributions[:, :self.z_dim]
         logvar = distributions[:, self.z_dim:]
         z = reparametrize(mu, logvar)
-        x_recon = self._decode(z).sigmoid()
-        return x_recon, z, mu, logvar
+        return z, mu, logvar
 
-    def _encode(self, x):
-        return self.encoder(x)
-
-    def _decode(self, z):
-        return self.decoder(z)
+    def decode(self, z):
+        return self.decoder(z).sigmoid()
 
     def save_state(self, path):
         checkpoint = {'encoder': self.encoder.state_dict(), 'decoder': self.decoder.state_dict()}
