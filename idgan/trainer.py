@@ -37,8 +37,8 @@ def compute_cross_entropy_loss_against(d_out, target):
 
 def compute_id_loss(real_c, real_c_mu, real_c_logvar, fake_c, fake_c_mu, fake_c_logvar):
   loss = -(
-      math.log(2*math.pi)
-      + fake_c_logvar + (real_c - fake_c_mu).pow(2).div(fake_c_logvar.exp() + 1e-8)).div(2).sum(1).mean()
+      math.log(2*math.pi) + fake_c_logvar + (real_c - fake_c_mu).pow(2).div(fake_c_logvar.exp() + 1e-8)
+  ).div(2).sum(1).mean()
   return loss
 
 
@@ -77,11 +77,12 @@ class Trainer:
     self.dvae = dvae.model.BetaVAE_H(self.c_dim, channels)
     self.dvae.load_state(config['dvae_checkpoint'])
     z_dim = self.c_dim + self.s_dim
+    image_size = config['image_size']
     generator_cls = model.GENERATORS[config['generator']['name']]
-    generator_kwargs = {'z_dim': z_dim, 'channels': channels}
+    generator_kwargs = {'z_dim': z_dim, 'channels': channels, 'image_size': image_size}
     self.generator = generator_cls(**generator_kwargs)
     discriminator_cls = model.DISCRIMINATORS[config['discriminator']['name']]
-    discriminator_kwargs = {'channels': channels}
+    discriminator_kwargs = {'channels': channels, 'image_size': image_size}
     self.discriminator = discriminator_cls(**discriminator_kwargs)
 
     self.dvae.to(self.device)
@@ -118,18 +119,22 @@ class Trainer:
         z = torch.cat([s, c], 1)
 
       # Do a discriminator update
-      dis_loss = self.discriminator_step(x_real, z)
+      dis_loss, dis_gan_loss, gp_loss = self.discriminator_step(x_real, z)
 
       # Do a generator update
-      gen_loss, x_fake = self.generator_step(z, c, c_mu, c_logvar)
+      gen_loss, gen_gan_loss, id_loss, x_fake = self.generator_step(z, c, c_mu, c_logvar)
 
       # Post-training
       progress_bar.set_description(f'{global_iter}/{self.max_iter}: dloss {dis_loss:.3f} gloss {gen_loss:.3f}')
 
       if global_iter % 1000 == 0:
         self.writer.add_scalar('dis_loss', dis_loss, global_iter)
+        self.writer.add_scalar('dis_gan_loss', dis_gan_loss, global_iter)
+        self.writer.add_scalar('gp_loss', gp_loss, global_iter)
         self.writer.add_scalar('gen_loss', gen_loss, global_iter)
-        x_grid = utils.compile_image_gallery(x_real, x_fake)
+        self.writer.add_scalar('gen_gan_loss', gen_gan_loss, global_iter)
+        self.writer.add_scalar('id_loss', id_loss, global_iter)
+        x_grid = utils.compile_image_gallery((x_real + 1.0) / 2, (x_fake + 1.0) / 2)
         tutils.save_image(x_grid, os.path.join(self.output_dir, 'samples', f'{global_iter}.png'))
 
   def discriminator_step(self, x_real, z):
@@ -140,16 +145,17 @@ class Trainer:
     x_real.requires_grad_()
     src_real = self.discriminator(x_real)
     loss_real = compute_cross_entropy_loss_against(src_real, 1.0)
-    gp_loss = self.gp_param * compute_gradient_penalty(src_real, x_real).mean()
+    gp_loss = compute_gradient_penalty(src_real, x_real).mean()
     with torch.no_grad():
       x_fake = self.generator(z)
     src_fake = self.discriminator(x_fake)
     loss_fake = compute_cross_entropy_loss_against(src_fake, 0.0)
-    dis_loss = (loss_real + loss_fake) + self.gp_param * gp_loss
+    dis_gan_loss = loss_real + loss_fake
+    dis_loss = dis_gan_loss + self.gp_param * gp_loss
     dis_loss.backward()
     self.d_optimizer.step()
 
-    return dis_loss.item()
+    return dis_loss.item(), dis_gan_loss.item(), gp_loss.item()
 
   def generator_step(self, z, real_c, real_c_mu, real_c_logvar):
     self.dvae.zero_grad()
@@ -165,4 +171,4 @@ class Trainer:
     gen_loss.backward()
     self.g_optimizer.step()
 
-    return gen_loss.item(), x_fake.detach()
+    return gen_loss.item(), gen_gan_loss.item(), id_loss.item(), x_fake.detach()
