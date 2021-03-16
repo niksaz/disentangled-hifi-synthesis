@@ -4,7 +4,7 @@ config:
   dvae_checkpoint: output/dvae_dsprites/checkpoints/model_500000
   c_dim: 10
   s_dim: 0
-  gp_param: 10.0
+  gp_param: 1e1
   info_alpha: 1e-4
   batch_size: 64
   max_iter: 300000
