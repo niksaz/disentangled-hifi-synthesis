@@ -10,12 +10,12 @@ from torchvision import utils as tutils
 import yaml
 
 
-def parse_args():
+def parse_args(args=None):
   parser = argparse.ArgumentParser()
   parser.add_argument('config_path', type=str, help='Path to the config')
   parser.add_argument('tag', type=str, help='Name of the experiment')
   parser.add_argument('--seed', default=27, type=int, help='Randomness seed')
-  return parser.parse_args()
+  return parser.parse_args(args)
 
 
 def fix_random_seed(seed):
