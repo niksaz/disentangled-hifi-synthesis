@@ -96,7 +96,6 @@ class Trainer:
     self.discriminator.to(self.device)
 
     # Latent distributions
-    self.c_dist = distributions.Normal(torch.zeros(self.c_dim).to(self.device), torch.ones(self.c_dim).to(self.device))
     self.s_dist = distributions.Normal(torch.zeros(self.s_dim).to(self.device), torch.ones(self.s_dim).to(self.device))
 
     # Optimizers
@@ -142,6 +141,12 @@ class Trainer:
         self.writer.add_scalar('id_loss', id_loss, global_iter)
         x_grid = utils.compile_image_gallery((x_real + 1.0) / 2, (x_fake + 1.0) / 2)
         tutils.save_image(x_grid, os.path.join(self.output_dir, 'samples', f'{global_iter}.png'))
+
+      if global_iter % 100000 == 0 or global_iter == self.max_iter:
+        generator_ckpt_path = os.path.join(self.output_dir, 'checkpoints', f'generator_{global_iter}')
+        self.generator.save_state(generator_ckpt_path)
+        discriminator_ckpt_path = os.path.join(self.output_dir, 'checkpoints', f'discriminator_{global_iter}')
+        self.discriminator.save_state(discriminator_ckpt_path)
 
   def discriminator_step(self, x_real, z):
     set_requires_grad_(self.dvae.parameters(), False)

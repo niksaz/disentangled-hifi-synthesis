@@ -18,6 +18,16 @@ class DVAEGenerator(nn.Module):
     x = torch.tanh(x)
     return x
 
+  def save_state(self, path):
+    checkpoint = {'model': self.model.state_dict()}
+    with open(path, 'wb') as fout:
+      torch.save(checkpoint, fout)
+
+  def load_state(self, path):
+      with open(path, 'rb') as fin:
+          checkpoint = torch.load(fin)
+      self.model.load_state_dict(checkpoint['model'])
+
 
 class DVAEDiscriminator(nn.Module):
   def __init__(self, channels, image_size):
@@ -28,6 +38,16 @@ class DVAEDiscriminator(nn.Module):
   def forward(self, x):
     x = self.model(x)
     return x
+
+  def save_state(self, path):
+    checkpoint = {'model': self.model.state_dict()}
+    with open(path, 'wb') as fout:
+      torch.save(checkpoint, fout)
+
+  def load_state(self, path):
+      with open(path, 'rb') as fin:
+          checkpoint = torch.load(fin)
+      self.model.load_state_dict(checkpoint['model'])
 
 
 def get_filters_to_map_from(size_from, size_to, filters_init=64, filters_max=512):
@@ -86,6 +106,16 @@ class ResNetGenerator(nn.Module):
     x = self.model(x)
     return x
 
+  def save_state(self, path):
+    checkpoint = {'model': self.model.state_dict()}
+    with open(path, 'wb') as fout:
+      torch.save(checkpoint, fout)
+
+  def load_state(self, path):
+      with open(path, 'rb') as fin:
+          checkpoint = torch.load(fin)
+      self.model.load_state_dict(checkpoint['model'])
+
 
 class ResNetDiscriminator(nn.Module):
   def __init__(self, channels, image_size):
@@ -106,6 +136,16 @@ class ResNetDiscriminator(nn.Module):
   def forward(self, x):
     x = self.model(x)
     return x
+
+  def save_state(self, path):
+    checkpoint = {'model': self.model.state_dict()}
+    with open(path, 'wb') as fout:
+      torch.save(checkpoint, fout)
+
+  def load_state(self, path):
+      with open(path, 'rb') as fin:
+          checkpoint = torch.load(fin)
+      self.model.load_state_dict(checkpoint['model'])
 
 
 GENERATORS = {
