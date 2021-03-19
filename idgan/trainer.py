@@ -119,7 +119,11 @@ class Trainer:
 
       # Extract the latent variable z for the real data
       with torch.no_grad():
-        c, c_mu, c_logvar = self.dvae.encode((x_real + 1.0) / 2)
+        if (x_real.size(2) > 64) or (x_real.size(3) > 64):
+          x_real_resized = F.adaptive_avg_pool2d(x_real, (64, 64))
+        else:
+          x_real_resized = x_real
+        c, c_mu, c_logvar = self.dvae.encode((x_real_resized + 1.0) / 2)
         s = self.s_dist.sample((self.batch_size,))
         z = torch.cat([s, c], 1)
 
@@ -139,6 +143,8 @@ class Trainer:
         self.writer.add_scalar('gen_loss', gen_loss, global_iter)
         self.writer.add_scalar('gen_gan_loss', gen_gan_loss, global_iter)
         self.writer.add_scalar('id_loss', id_loss, global_iter)
+        print('x_real', x_real.min().item(), x_real.mean().item(), x_real.max().item())
+        print('x_fake', x_fake.min().item(), x_fake.mean().item(), x_fake.max().item())
         x_grid = utils.compile_image_gallery((x_real + 1.0) / 2, (x_fake + 1.0) / 2)
         tutils.save_image(x_grid, os.path.join(self.output_dir, 'samples', f'{global_iter}.png'))
 
@@ -179,7 +185,11 @@ class Trainer:
     x_fake = self.generator(z)
     src_fake = self.discriminator(x_fake)
     gen_gan_loss = compute_cross_entropy_loss_against(src_fake, 1.0)
-    fake_c, fake_c_mu, fake_c_logvar = self.dvae.encode((x_fake + 1.0) / 2)
+    if (x_fake.size(2) > 64) or (x_fake.size(3) > 64):
+      x_fake_resized = F.adaptive_avg_pool2d(x_fake, (64, 64))
+    else:
+      x_fake_resized = x_fake
+    fake_c, fake_c_mu, fake_c_logvar = self.dvae.encode((x_fake_resized + 1.0) / 2)
     id_loss = compute_id_loss(real_c, real_c_mu, real_c_logvar, fake_c, fake_c_mu, fake_c_logvar)
     gen_loss = gen_gan_loss - self.info_alpha * id_loss
     gen_loss.backward()
