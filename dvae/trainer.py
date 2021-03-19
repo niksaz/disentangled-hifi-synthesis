@@ -74,3 +74,5 @@ class Trainer:
       if global_iter % 100000 == 0 or global_iter == self.max_iter:
         checkpoint_path = os.path.join(self.output_dir, 'checkpoints', f'model_{global_iter}')
         self.model.save_state(checkpoint_path)
+        optim_ckpt_path = os.path.join(self.output_dir, 'checkpoints', f'optim_{global_iter}')
+        utils.save_state(self.optim, optim_ckpt_path)

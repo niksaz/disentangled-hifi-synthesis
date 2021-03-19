@@ -148,11 +148,15 @@ class Trainer:
         x_grid = utils.compile_image_gallery((x_real + 1.0) / 2, (x_fake + 1.0) / 2)
         tutils.save_image(x_grid, os.path.join(self.output_dir, 'samples', f'{global_iter}.png'))
 
-      if global_iter % 100000 == 0 or global_iter == self.max_iter:
+      if global_iter % 10000 == 0 or global_iter == self.max_iter:
         generator_ckpt_path = os.path.join(self.output_dir, 'checkpoints', f'generator_{global_iter}')
         self.generator.save_state(generator_ckpt_path)
         discriminator_ckpt_path = os.path.join(self.output_dir, 'checkpoints', f'discriminator_{global_iter}')
         self.discriminator.save_state(discriminator_ckpt_path)
+        g_optimizer_ckpt_path = os.path.join(self.output_dir, 'checkpoints', f'g_optimizer_{global_iter}')
+        utils.save_state(self.g_optimizer, g_optimizer_ckpt_path)
+        d_optimizer_ckpt_path = os.path.join(self.output_dir, 'checkpoints', f'd_optimizer_{global_iter}')
+        utils.save_state(self.d_optimizer, d_optimizer_ckpt_path)
 
   def discriminator_step(self, x_real, z):
     set_requires_grad_(self.dvae.parameters(), False)

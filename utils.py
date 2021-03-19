@@ -58,3 +58,15 @@ def compile_image_gallery(imgs1, imgs2):
   imgs2_grid = tutils.make_grid(imgs2, nrow=nrow, padding=1, pad_value=1)
   imgs_grid = tutils.make_grid(torch.stack([imgs1_grid, imgs2_grid]), nrow=2, padding=10, pad_value=0)
   return imgs_grid
+
+
+def save_state(module, path):
+  checkpoint = {'state_dict': module.state_dict()}
+  with open(path, 'wb') as fout:
+    torch.save(checkpoint, fout)
+
+
+def load_state(module, path):
+  with open(path, 'rb') as fin:
+    checkpoint = torch.load(fin)
+  module.load_state_dict(checkpoint['state_dict'])
