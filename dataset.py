@@ -52,6 +52,9 @@ def get_dataloader(config, num_workers, preprocessing_type):
   elif name == 'celeba_128':
     data_path = os.path.join('data', 'CelebA_128')
     dataset = get_non_tupled_image_folder_dataset(data_path, transform)
+  elif name == 'celeba_256':
+    data_path = os.path.join('data', 'CelebA_256')
+    dataset = get_non_tupled_image_folder_dataset(data_path, transform)
   else:
     raise ValueError(f'Unknown dataset name: {name}.')
   dataloader = DataLoader(dataset, batch_size, shuffle=True, num_workers=num_workers, pin_memory=True, drop_last=True)
